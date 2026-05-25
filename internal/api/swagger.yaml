@@ -1,0 +1,222 @@
+openapi: 3.0.3
+
+info:
+  title: Search Trends API
+  description: API сервиса для получения Top-N популярных поисковых запросов за последние 5 минут.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Trends
+    description: Получение актуального топа поисковых запросов
+  - name: StopWords
+    description: Управление стоп-листом нежелательных слов
+  - name: Health
+    description: Проверка состояния сервиса
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Проверить состояние сервиса
+      operationId: getHealth
+      responses:
+        '200':
+          description: Сервис работает
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /top:
+    get:
+      tags:
+        - Trends
+      summary: Получить Top-N поисковых запросов
+      description: |
+        Возвращает самые популярные поисковые запросы за последние 5 минут.
+
+        Значение N передается через query-параметр `n`.
+        Если параметр не передан, используется значение по умолчанию.
+      operationId: getTopQueries
+      parameters:
+        - name: n
+          in: query
+          required: false
+          description: Количество элементов в топе
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+            example: 10
+      responses:
+        '200':
+          description: Успешный ответ с топом поисковых запросов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopQueriesResponse'
+        '400':
+          description: Некорректный параметр запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /stop-words:
+    get:
+      tags:
+        - StopWords
+      summary: Получить список стоп-слов
+      operationId: getStopWords
+      responses:
+        '200':
+          description: Список стоп-слов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StopWordsResponse'
+
+    post:
+      tags:
+        - StopWords
+      summary: Добавить слово в стоп-лист
+      operationId: addStopWord
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddStopWordRequest'
+      responses:
+        '201':
+          description: Слово добавлено в стоп-лист
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StopWordResponse'
+        '400':
+          description: Некорректное тело запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Слово уже существует в стоп-листе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /stop-words/{word}:
+    delete:
+      tags:
+        - StopWords
+      summary: Удалить слово из стоп-листа
+      operationId: deleteStopWord
+      parameters:
+        - name: word
+          in: path
+          required: true
+          description: Слово для удаления из стоп-листа
+          schema:
+            type: string
+            example: casino
+      responses:
+        '204':
+          description: Слово удалено
+        '404':
+          description: Слово не найдено в стоп-листе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: ok
+
+    TopQueriesResponse:
+      type: object
+      required:
+        - window_seconds
+        - items
+      properties:
+        window_seconds:
+          type: integer
+          description: Размер временного окна в секундах
+          example: 300
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopQueryItem'
+
+    TopQueryItem:
+      type: object
+      required:
+        - query
+        - count
+      properties:
+        query:
+          type: string
+          description: Поисковый запрос
+          example: iphone 15
+        count:
+          type: integer
+          description: Количество появлений запроса за последние 5 минут
+          example: 1245
+
+    AddStopWordRequest:
+      type: object
+      required:
+        - word
+      properties:
+        word:
+          type: string
+          description: Слово или фраза, которую нужно исключить из топа
+          minLength: 1
+          example: casino
+
+    StopWordResponse:
+      type: object
+      required:
+        - word
+      properties:
+        word:
+          type: string
+          example: casino
+
+    StopWordsResponse:
+      type: object
+      required:
+        - words
+      properties:
+        words:
+          type: array
+          items:
+            type: string
+          example:
+            - casino
+            - spam
+            - fake
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: invalid request
