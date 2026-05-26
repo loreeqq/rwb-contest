@@ -108,7 +108,7 @@ func main() {
 		Handler: router,
 	}
 
-	// Запускаем HTTP сервер в отдельной goroutine.
+	// Запускаем HTTP сервер в отдельной горутине.
 	go func() {
 
 		log.Printf("Server started on %s", cfg.HTTPAddr)
@@ -133,7 +133,7 @@ func main() {
 
 	log.Println("Signal received, server is down.")
 
-	// Останавливаем все goroutine приложения.
+	// Останавливаем все горутины приложения.
 	cancel()
 
 	// Контекст с timeout для graceful shutdown.
