@@ -88,6 +88,10 @@ func (s *RingBufferStorage) Add(query string) {
 		bucket.Counts = make(map[string]int)
 	}
 
+	if bucket.Counts[query] >= config.MaxQueryPerSecond {
+		return
+	}
+
 	bucket.Counts[query]++
 }
 
@@ -158,8 +162,8 @@ func (s *RingBufferStorage) AddStopWord(word string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if s.stopWords[word] != struct{}{} {
-		return nil
+	if _, exists := s.stopWords[word]; exists {
+		return ErrWordAlreadyExist
 	}
 
 	s.stopWords[word] = struct{}{}

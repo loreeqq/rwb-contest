@@ -7,6 +7,7 @@ import (
 )
 
 const WindowSeconds = 300
+const MaxQueryPerSecond = 50
 
 type Config struct {
 	HTTPAddr     string
