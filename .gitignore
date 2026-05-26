@@ -9,4 +9,6 @@
 .DS_Store
 
 *.log
+
 coverage.out
+coverage.html
