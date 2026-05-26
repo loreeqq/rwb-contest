@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"rwb-contest/internal/dto"
 	"rwb-contest/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -41,14 +42,12 @@ func (h *StopWordsHandler) GetStopWords(c *gin.Context) {
 func (h *StopWordsHandler) AddStopWord(c *gin.Context) {
 
 	// Входное тело запроса.
-	var input struct {
-		Word string `json:"word"`
-	}
+	var input dto.StopWordRequest
 
 	// Проверяем корректность JSON.
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid request body",
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+			Error: "invalid request",
 		})
 
 		return
@@ -69,8 +68,8 @@ func (h *StopWordsHandler) RemoveStopWord(c *gin.Context) {
 	word := c.Param("word")
 
 	if word == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "word is required",
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+			Error: "invalid request",
 		})
 
 		return
