@@ -3,6 +3,8 @@ package rabbitmq
 import (
 	"context"
 	"encoding/json"
+	"log"
+	"time"
 
 	"github.com/rabbitmq/amqp091-go"
 )
@@ -32,9 +34,17 @@ func NewProducer(url string, queueName string) *Producer {
 // Connect подключается к RabbitMQ,
 // открывает канал и объявляет очередь.
 func (p *Producer) Connect() error {
-	conn, err := amqp091.Dial(p.url)
-	if err != nil {
-		return err
+	var conn *amqp091.Connection
+	var err error
+
+	for i := 1; i <= 10; i++ {
+		conn, err = amqp091.Dial(p.url)
+		if err == nil {
+			break
+		}
+
+		log.Printf("RabbitMQ is not ready, retrying... attempt %d/10: %v", i, err)
+		time.Sleep(2 * time.Second)
 	}
 
 	channel, err := conn.Channel()

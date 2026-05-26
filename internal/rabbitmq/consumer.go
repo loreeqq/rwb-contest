@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/rabbitmq/amqp091-go"
 )
@@ -35,9 +36,19 @@ func NewConsumer(url string, queueName string) *Consumer {
 // Connect подключается к RabbitMQ,
 // открывает канал и объявляет очередь.
 func (c *Consumer) Connect() error {
-	conn, err := amqp091.Dial(c.url)
-	if err != nil {
-		return err
+	var conn *amqp091.Connection
+	var err error
+
+	for i := 1; i <= 10; i++ {
+		conn, err = amqp091.Dial(c.url)
+		if err == nil {
+			break
+		}
+		// При поднятии контейнеров, контейнеры app и producer
+		// не могут подключиться к рэббиту, им нужно немного подождать.
+		// Поэтому было принято решение прописать ожидание и retry внутри Connect()
+		log.Printf("RabbitMQ is not ready, retrying... attempt %d/10: %v", i, err)
+		time.Sleep(2 * time.Second)
 	}
 
 	channel, err := conn.Channel()

@@ -1,4 +1,4 @@
-FROM golang:1.25 AS builder
+FROM golang:1.26.1 AS builder
 
 WORKDIR /app
 
@@ -7,14 +7,14 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o app ./cmd
-RUN go build -o producer ./cmd/producer
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/app ./cmd/app
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/producer ./cmd/producer
 
 FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/app .
-COPY --from=builder /app/producer .
+COPY --from=builder /app/bin/app /app/app
+COPY --from=builder /app/bin/producer /app/producer
 
-CMD ["./app"]
+CMD ["/app/app"]

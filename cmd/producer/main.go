@@ -8,11 +8,27 @@ import (
 
 	"github.com/rabbitmq/amqp091-go"
 
+	"rwb-contest/internal/config"
 	"rwb-contest/internal/dto"
 )
 
 func main() {
-	conn, err := amqp091.Dial("amqp://guest:guest@localhost:5672/")
+
+	cfg := config.Load()
+
+	var conn *amqp091.Connection
+	var err error
+
+	for i := 1; i <= 10; i++ {
+		conn, err = amqp091.Dial(cfg.RabbitURL)
+		if err == nil {
+			break
+		}
+
+		log.Printf("RabbitMQ is not ready, retrying... attempt %d/10: %v", i, err)
+		time.Sleep(2 * time.Second)
+	}
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,7 +40,7 @@ func main() {
 	}
 	defer channel.Close()
 
-	queueName := "search_queries"
+	queueName := cfg.RabbitQueue
 
 	_, err = channel.QueueDeclare(
 		queueName,
