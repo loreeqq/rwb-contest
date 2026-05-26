@@ -1,0 +1,32 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rwb-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rwb-app
+    depends_on:
+      - rabbitmq
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    command: ["/app/app"]
+
+  producer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rwb-producer
+    depends_on:
+      - rabbitmq
+      - app
+    env_file:
+      - .env
+    command: ["/app/producer"]
