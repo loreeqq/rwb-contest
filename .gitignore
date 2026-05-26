@@ -1,0 +1,12 @@
+/bin/
+/build/
+
+.env
+
+.idea/
+.vscode/
+
+.DS_Store
+
+*.log
+coverage.out

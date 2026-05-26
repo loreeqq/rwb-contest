@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"runtime"
 	"strconv"
 )
 
@@ -19,7 +20,7 @@ func Load() Config {
 		HTTPAddr:     getEnv("HTTP_ADDR", ":8080"),
 		RabbitURL:    getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),
 		RabbitQueue:  getEnv("RABBITMQ_QUEUE", "search_queries"),
-		WorkersCount: getEnvAsInt("WORKERS_COUNT", 4),
+		WorkersCount: getEnvAsInt("WORKERS_COUNT", runtime.NumCPU()*2),
 	}
 }
 
