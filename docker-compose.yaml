@@ -1,22 +1,32 @@
-version: '3.9'
-
 services:
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: rabbitmq
-
+    container_name: rwb-rabbitmq
     ports:
-      - "5672:5672"     # AMQP
-      - "15672:15672"   # Web UI
+      - "5672:5672"
+      - "15672:15672"
 
-    environment:
-      RABBITMQ_DEFAULT_USER: dev
-      RABBITMQ_DEFAULT_PASS: dev
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rwb-app
+    depends_on:
+      - rabbitmq
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    command: ["./app"]
 
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-
-    restart: unless-stopped
-
-volumes:
-  rabbitmq_data:
+  producer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rwb-producer
+    depends_on:
+      - rabbitmq
+      - app
+    env_file:
+      - .env
+    command: ["./producer"]

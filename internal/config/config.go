@@ -19,7 +19,7 @@ type Config struct {
 func Load() Config {
 	return Config{
 		HTTPAddr:     getEnv("HTTP_ADDR", ":8080"),
-		RabbitURL:    getEnv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"),
+		RabbitURL:    getEnv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/"),
 		RabbitQueue:  getEnv("RABBITMQ_QUEUE", "search_queries"),
 		WorkersCount: getEnvAsInt("WORKERS_COUNT", runtime.NumCPU()*2),
 	}
