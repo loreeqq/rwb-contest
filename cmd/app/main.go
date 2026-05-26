@@ -28,10 +28,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rabbitmq/amqp091-go"
 
 	"rwb-contest/internal/config"
 	"rwb-contest/internal/handlers"
+	"rwb-contest/internal/metrics"
 	"rwb-contest/internal/rabbitmq"
 	"rwb-contest/internal/service"
 	"rwb-contest/internal/storage"
@@ -41,6 +43,7 @@ import (
 func main() {
 
 	cfg := config.Load()
+	metrics.Init()
 
 	appCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -101,6 +104,8 @@ func main() {
 	router.GET("/stop-words", stopWordsHandler.GetStopWords)
 	router.POST("/stop-words", stopWordsHandler.AddStopWord)
 	router.DELETE("/stop-words/:word", stopWordsHandler.RemoveStopWord)
+
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	// Конфигурация HTTP сервера.
 	server := &http.Server{

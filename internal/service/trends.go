@@ -3,6 +3,7 @@ package service
 import (
 	"rwb-contest/internal/config"
 	"rwb-contest/internal/dto"
+	"rwb-contest/internal/metrics"
 	"rwb-contest/internal/storage"
 )
 
@@ -41,6 +42,9 @@ func (s *TrendsService) ProcessEvent(event dto.SearchEvent) {
 // GetTop возвращает Top-N запросов
 // за последние 5 минут.
 func (s *TrendsService) GetTop(n int) dto.TopResponse {
+
+	metrics.TopRequestsTotal.Inc()
+
 	return dto.TopResponse{
 		WindowSeconds: config.WindowSeconds,
 		Items:         s.storage.Top(n),
@@ -50,11 +54,17 @@ func (s *TrendsService) GetTop(n int) dto.TopResponse {
 // AddStopWord добавляет слово в стоп-лист.
 func (s *TrendsService) AddStopWord(word string) error {
 	err := s.storage.AddStopWord(word)
+	metrics.StopWordsCount.Set(
+		float64(len(s.storage.ListStopWords())),
+	)
 	return err
 }
 
 // RemoveStopWord удаляет слово из стоп-листа.
 func (s *TrendsService) RemoveStopWord(word string) {
+	metrics.StopWordsCount.Set(
+		float64(len(s.storage.ListStopWords())),
+	)
 	s.storage.RemoveStopWord(word)
 }
 

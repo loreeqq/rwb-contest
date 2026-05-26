@@ -9,6 +9,7 @@ import (
 	"github.com/rabbitmq/amqp091-go"
 
 	"rwb-contest/internal/dto"
+	"rwb-contest/internal/metrics"
 	"rwb-contest/internal/service"
 )
 
@@ -58,11 +59,16 @@ func (p *Pool) handleMessage(workerID int, msg amqp091.Delivery) {
 
 	if err := json.Unmarshal(msg.Body, &event); err != nil {
 		log.Printf("worker %d: ошибка разбора сообщения: %v", workerID, err)
+
+		metrics.InvalidSearchEventsTotal.Inc()
+
 		_ = msg.Nack(false, false)
 		return
 	}
 
 	p.service.ProcessEvent(event)
+
+	metrics.SearchEventsTotal.Inc()
 
 	if err := msg.Ack(false); err != nil {
 		log.Printf("worker %d: ошибка подтверждения сообщения: %v", workerID, err)
